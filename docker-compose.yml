@@ -1,0 +1,45 @@
+version: '3'
+services:
+    apache:
+        restart: unless-stopped
+        build:
+            context: ./docker/8.3-php-apache
+            dockerfile: Dockerfile
+            args:
+                DOCKER_WWWGROUP: '${DOCKER_WWWGROUP}'
+                DOCKER_WWWUSER: '${DOCKER_WWWUSER}'
+        ports:
+            - '${APP_PORT:-80}:80'
+        environment:
+            DOCKER_WWWUSER: '${DOCKER_WWWUSER}'
+            LARAVEL_SAIL: 1
+            PHP_IDE_CONFIG: serverName=localhost
+        volumes:
+            - '.:/var/www/html'
+            - './docker/configs/supervisord.conf:/etc/supervisor/supervisord.conf'
+            - './docker/configs/supervisor/:/etc/supervisor/conf.d/'
+            - './docker/configs/000-default.conf:/etc/apache2/sites-available/000-default.conf'
+            - './docker/configs/xdebug-${APP_ENV}.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini'
+        networks:
+            - symfony-net
+        depends_on:
+            - mysql
+    mysql:
+        restart: unless-stopped
+        image: mariadb:10
+        ports:
+            - '${DOCKER_PORT_MYSQL:-3306}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - './docker/data/mysql:/var/lib/mysql'
+        networks:
+            - symfony-net
+networks:
+    symfony-net:
+        driver: bridge

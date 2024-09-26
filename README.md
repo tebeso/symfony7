@@ -1,1 +1,1 @@
-# symfony7
+tailwindcss -i ./assets/app.css -o ./public/app.css --watch
