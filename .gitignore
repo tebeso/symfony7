@@ -16,3 +16,7 @@
 
 .idea
 docker/data
+
+*.pid
+
+*.log
